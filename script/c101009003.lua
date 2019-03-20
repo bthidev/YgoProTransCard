@@ -31,12 +31,12 @@ function s.filter(c)
 	return c:IsFaceup() and c:IsSetCard(0x22b) and c:IsType(TYPE_LINK)
 end
 function s.spzone(tp)
-	local g=Duel.GetMatchingGroup(s.filter,tp,LOCATION_MZONE,0,nil)
+	local g=Duel.GetMatchingGroup(s.filter,tp,LOCATION_MZONE,LOCATION_MZONE,nil)
 	local zone=0
 	for c in aux.Next(g) do
 		zone=zone|c:GetLinkedZone(tp)
 	end
-	return zone
+	return zone&0x1f
 end
 function s.condition(e,c)
 	if c==nil then return true end
@@ -46,16 +46,15 @@ function s.condition(e,c)
 end
 function s.spval(e,c)
 	local tp=e:GetHandlerPlayer()
-	local g=Duel.GetMatchingGroup(s.filter,tp,LOCATION_MZONE,0,nil)
-	local zone=s.spzone(tp,g)
+	local zone=s.spzone(tp)
 	return 0,zone
 end
 function s.spfilter(c,e,tp,zone)
-	return zone~=0 and c:IsAttribute(ATTRIBUTE_WATER) and c:IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEUP,tp,zone)
+	return c:IsAttribute(ATTRIBUTE_WATER) and c:IsCanBeSpecialSummoned(e,0,tp,false,false,POS_FACEUP,tp,zone)
 end
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local zone=s.spzone(tp)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_HAND,0,1,nil,e,tp,zone) end
+	if chk==0 then return zone~=0 and Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_HAND,0,1,nil,e,tp,zone) end
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_HAND)
 end
 function s.spop(e,tp,eg,ep,ev,re,r,rp)
