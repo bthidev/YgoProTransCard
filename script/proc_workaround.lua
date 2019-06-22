@@ -16,6 +16,25 @@ function Card.IsNonEffectMonster(c)
 	return c:IsType(TYPE_MONSTER) and not c:IsType(TYPE_EFFECT)
 end
 
+local syncheck = Card.IsSynchroSummonable
+Card.IsSynchroSummonable=function(c,tun,mg,min,max)
+	Auxiliary.SynchroSummonMinCount = min
+	Auxiliary.SynchroSummonMaxCount = max
+	local res = syncheck(c,tun,mg)
+	Auxiliary.SynchroSummonMinCount = nil
+	Auxiliary.SynchroSummonMaxCount = nil
+	return res
+end
+local synsum = Duel.SynchroSummon
+Duel.SynchroSummon=function(tp,syn,tun,g,min,max)
+	Auxiliary.SynchroSummonMinCount = min
+	Auxiliary.SynchroSummonMaxCount = max
+	local res = synsum(tp,syn,tun,g)
+	Auxiliary.SynchroSummonMinCount = nil
+	Auxiliary.SynchroSummonMaxCount = nil
+	return res
+end
+
 local chkoverlay=Duel.CheckRemoveOverlayCard
 Duel.CheckRemoveOverlayCard=function(player, self, opponent, count, reason, group)
 	if not group then
@@ -378,14 +397,16 @@ function Auxiliary.HakaiLinkTarget(f,of)
 					e2:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
 					e2:SetTargetRange(1,0)
 					e2:SetValue(Auxiliary.HakaiLinkExtra)
-					oc:RegisterEffect(e2)
+					local reg = oc:RegisterEffect(e2,true)
 					table.insert(oeff,e2)
 				end
 				if chkc then
 					local b=chkc:IsControler(1-tp) and chkc:IsLocation(LOCATION_MZONE) and Auxiliary.HakaiLinkFilter(chkc,e,tp,f,of)
 					e1:Reset()
 					for _,oe in ipairs(oeff) do
-						oe:Reset()
+						if reg then
+							oe:Reset()
+						end
 					end
 					return b
 				end
@@ -409,7 +430,7 @@ function Auxiliary.HakaiLinkOperation(f)
 	return	function(e,tp,eg,ep,ev,re,r,rp)
 				local c=e:GetHandler()
 				local tc=Duel.GetFirstTarget()
-				if not (c:IsRelateToEffect(e) and tc:IsRelateToEffect(e)) then return end
+				if not (c:IsRelateToEffect(e) and tc:IsRelateToEffect(e) and not tc:IsImmuneToEffect(e)) then return end
 				local e1=Effect.CreateEffect(c)
 				e1:SetType(EFFECT_TYPE_FIELD)
 				e1:SetCode(EFFECT_CANNOT_BE_LINK_MATERIAL)
@@ -425,14 +446,16 @@ function Auxiliary.HakaiLinkOperation(f)
 				e2:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
 				e2:SetTargetRange(1,0)
 				e2:SetValue(Auxiliary.HakaiLinkExtra)
-				tc:RegisterEffect(e2)
+				 local reg = tc:RegisterEffect(e2,true)
 				Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
 				local g=Duel.SelectMatchingCard(tp,Auxiliary.HakaiLinkSummonFilter(f),tp,LOCATION_EXTRA,0,1,1,nil,c,tc,tp)
 				if #g>0 then
 					Duel.SpecialSummonRule(tp,g:GetFirst(),SUMMON_TYPE_LINK)
 				end
 				e1:Reset()
-				e2:Reset()
+				if reg then
+					e2:Reset()
+				end
 			end
 end
 function Effect.AddHakaiLinkEffect(e,f,of)
