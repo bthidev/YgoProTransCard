@@ -11,7 +11,7 @@ function s.initial_effect(c)
 	--Activate
 	local e2=Effect.CreateEffect(c)
 	e2:SetType(EFFECT_TYPE_TRIGGER_O+EFFECT_TYPE_FIELD)
-	e2:SetProperty(EFFECT_FLAG_DAMAGE_STEP+EFFECT_FLAG_DELAY)
+	e2:SetProperty(EFFECT_FLAG_DELAY)
 	e2:SetCategory(CATEGORY_SPECIAL_SUMMON)
 	e2:SetCode(EVENT_TO_HAND)
 	e2:SetRange(LOCATION_FZONE)
@@ -26,6 +26,7 @@ function s.initial_effect(c)
 	e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
 	e3:SetCode(EVENT_SPSUMMON_SUCCESS)
 	e3:SetRange(LOCATION_FZONE)
+	e3:SetProperty(EFFECT_FLAG_DELAY)
 	e3:SetCountLimit(1,id)
 	e3:SetCondition(s.tkcon)
 	e3:SetTarget(s.tktg)
@@ -55,8 +56,11 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
         Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP_DEFENSE)
     end
 end
+function s.tkfilter(c,tp)
+	return c:IsFaceup() and c:IsSetCard(0x232) and c:GetSummonPlayer()==tp
+end
 function s.tkcon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.GetTurnPlayer()~=tp and eg:IsExists(Card.IsSetCard,1,nil,0x232)
+	return Duel.GetTurnPlayer()~=tp and eg:IsExists(s.tkfilter,1,nil,tp)
 end
 function s.tktg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsPlayerCanSpecialSummonMonster(tp,id+100,0x232,TYPES_TOKEN,1500,1500,4,RACE_FAIRY,ATTRIBUTE_LIGHT) 
@@ -108,5 +112,3 @@ function s.desop(e,tp,eg,ep,ev,re,r,rp)
 	local tc=g:Filter(s.desfilter,nil,e:GetLabel())
 	Duel.Destroy(tc,REASON_EFFECT)
 end
-
-
