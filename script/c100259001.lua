@@ -59,7 +59,8 @@ function s.valcheck(e,c)
 	e:GetLabelObject():SetLabel(ct)
 end
 function s.regcon(e,tp,eg,ep,ev,re,r,rp)
-	return e:GetHandler():IsSummonType(SUMMON_TYPE_FUSION) --and e:GetLabel()>0
+	local c=e:GetHandler()
+	return c:IsSummonType(SUMMON_TYPE_FUSION) and c:GetMaterial():FilterCount(Card.IsType,nil,TYPE_NORMAL)>0
 end
 function s.chkfilter(c,label)
 	return c:GetFlagEffect(label)>0
@@ -119,7 +120,7 @@ function s.distg(e,tp,eg,ep,ev,re,r,rp,chk)
 end
 function s.disop(e,tp,eg,ep,ev,re,r,rp)
 	if Duel.NegateActivation(ev) and re:GetHandler():IsRelateToEffect(re) then
-		if Duel.Destroy(eg,REASON_EFFECT) then
+		if Duel.Destroy(eg,REASON_EFFECT)~=0 then
 			local e1=Effect.CreateEffect(e:GetHandler())
 			e1:SetType(EFFECT_TYPE_SINGLE)
 			e1:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
