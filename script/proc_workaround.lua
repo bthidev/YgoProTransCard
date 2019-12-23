@@ -74,6 +74,20 @@ function Duel.DiscardHand(player,filter,min,max,reason,excluded,...)
 end
 
 --things needed for steelswarm origin
+local iscanc=Card.IsCanBeSpecialSummoned
+Card.IsCanBeSpecialSummoned=function(...)
+	local c=...
+	local prev=aux.SummoningCard
+	local preve=aux.ExtraSummon
+	aux.SummoningCard=c
+	if c:IsLocation(LOCATION_EXTRA) then
+		aux.ExtraSummon=true
+	end
+	local res=iscanc(...)
+	aux.ExtraSummon=preve
+	aux.SummoningCard=prev
+	return res
+end
 local iscan=Duel.IsCanBeSpecialSummoned
 Duel.IsCanBeSpecialSummoned=function(c,...)
 	local prev=aux.SummoningCard
@@ -219,6 +233,15 @@ function registerpendulum()
 							and not (aux.SummoningCard:IsType(TYPE_LINK) or (aux.SummoningCard:IsType(TYPE_PENDULUM) and aux.SummoningCard:IsPosition(POS_FACEUP))))
 						end)
 	e1:SetValue(0xffffff)
+	Duel.RegisterEffect(e1,0)
+	local e1=geff()
+	e1:SetType(EFFECT_TYPE_CONTINUOUS+EFFECT_TYPE_FIELD)
+	e1:SetCode(EVENT_SPSUMMON)
+	e1:SetCondition(function()
+						aux.ExtraSummon=false
+						aux.SummoningCard=nil
+						return false
+					end)
 	Duel.RegisterEffect(e1,0)
 end
 
