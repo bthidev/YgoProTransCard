@@ -87,7 +87,7 @@ function s.sbfilter(c)
 	return c:IsFaceup() and c:IsCode(69890967,6007213,32491822)
 end
 function s.sbcount(tp)
-	return Duel.GetMatchingGroup(s.sbfilter,tp,LOCATION_MZONE,0,nil):GetClassCount(Card.GetCode)
+	return Duel.GetMatchingGroup(s.sbfilter,tp,LOCATION_ONFIELD,0,nil):GetClassCount(Card.GetCode)
 end
 function s.filter(c,sp)
 	if c:IsLocation(LOCATION_MZONE) then
@@ -152,7 +152,7 @@ function s.rmtg(e,c)
 	return c:IsType(TYPE_MONSTER) and c:GetOwner()~=e:GetHandlerPlayer() and Duel.IsPlayerCanRemove(e:GetHandlerPlayer(),c)
 end
 function s.thcon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.IsExistingMatchingCard(aux.FilterFaceupFunction(Card.IsLevel,10),tp,LOCATION_MZONE,0,1,nil)
+	return Duel.GetTurnPlayer()==tp and Duel.IsExistingMatchingCard(aux.FilterFaceupFunction(Card.IsLevel,10),tp,LOCATION_MZONE,0,1,nil)
 end
 function s.thfilter(c)
 	return c:IsType(TYPE_TRAP) and c:IsType(TYPE_CONTINUOUS) and c:IsAbleToHand()
